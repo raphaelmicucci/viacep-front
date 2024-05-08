@@ -3,6 +3,7 @@ const inputrua = document.querySelector('#rua');
 const inputcidade = document.querySelector('#cidade');
 const inputbairro = document.querySelector('#bairro');
 const inputuf = document.querySelector('#uf');
+const btnBuscar = document.querySelector("#buscar");
 
 inputcep.addEventListener('blur', async function(){
     inputuf.value = '...';
@@ -30,9 +31,8 @@ inputcep.addEventListener('blur', async function(){
    preencherform(retorno);
 })
 
-inputuf.addEventListener('blur', async function(){
-    inputcep.value = '...';
-    inputbairro.value = '...';
+btnBuscar.addEventListener('click', async function(e){
+    e.preventDefault();
 
     if(inputuf.value == ''){
         alert('campo "uf" vazio');
@@ -43,17 +43,20 @@ inputuf.addEventListener('blur', async function(){
         return true;
     }
     if(inputuf.value == ''){
-        alert('uf vazio');
+        alert('campo "uf" vazio');
         return true;
     }
 
     function preencher(dados){
         const body = document.querySelector("body");
-
+        const p = document.createElement("p");
         for(i=0; i < dados.length; i++){
-            const h5 = document.createElement('h5');
-            h5.innerText = dados[i].cep;
-            body.appendChild(h5);
+            if(i == dados.length-1){
+                p.innerText += `${dados[i].cep}`;
+                break;
+            }
+            p.innerText += `${dados[i].cep},\u00A0`;
+            body.appendChild(p);
         }       
     }
 
@@ -66,5 +69,4 @@ inputuf.addEventListener('blur', async function(){
    console.log(retorno);
    preencher(retorno);
 })
-
 
