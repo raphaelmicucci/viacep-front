@@ -4,8 +4,19 @@ const inputcidade = document.querySelector('#cidade');
 const inputbairro = document.querySelector('#bairro');
 const inputuf = document.querySelector('#uf');
 const btnBuscar = document.querySelector("#buscar");
+const btnBuscarCEP = document.querySelector("#buscar-cep");
 
-inputcep.addEventListener('blur', async function(){
+function preencherForm(dados){
+    inputcep.value = dados.cep;
+    inputuf.value = dados.uf;
+    inputcidade.value = dados.localidade;
+    inputbairro.value = dados.bairro;
+    inputrua.value = dados.logradouro;
+}
+
+btnBuscarCEP.addEventListener('click', async function(e){
+    e.preventDefault();
+
     inputuf.value = '...';
     inputcidade.value = '...';
     inputbairro.value = '...';
@@ -15,58 +26,61 @@ inputcep.addEventListener('blur', async function(){
         alert('campo "cep" vazio');
         return true;
     }
-    function preencherform(dados){
-        inputuf.value = dados.uf;
-        inputcidade.value = dados.localidade;
-        inputbairro.value = dados.bairro;
-        inputrua.value = dados.logradouro;
-    }
 
     async function buscacep(cep){
-       const request = await fetch(`https://viacep.com.br/ws/${cep}/json`);
-       return request.json();
-   }
+        try {
+            const request = await fetch(`https://viacep.com.br/ws/${cep}/json`);
+            if (!request.ok) {
+                throw new Error('Falha ao buscar dados do CEP');
+            }
+            return await request.json();
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao buscar o CEP. Tente novamente mais tarde.');
+            return null; 
+        }
+    }
 
-   const retorno = await buscacep(inputcep.value);
-   preencherform(retorno);
-})
+    const retorno = await buscacep(inputcep.value);
+    if (retorno) {
+        preencherForm(retorno);
+    }
+});
 
 btnBuscar.addEventListener('click', async function(e){
     e.preventDefault();
 
-    if(inputuf.value == ''){
-        alert('campo "uf" vazio');
-        return true;
-    }
     if(inputrua.value == ''){
         alert('campo "rua" vazio');
         return true;
     }
+    if(inputcidade.value == ''){
+        alert('campo "cidade" vazio');
+        return true;
+    }
     if(inputuf.value == ''){
         alert('campo "uf" vazio');
         return true;
     }
 
-    function preencher(dados){
-        const body = document.querySelector("body");
-        const p = document.createElement("p");
-        for(i=0; i < dados.length; i++){
-            if(i == dados.length-1){
-                p.innerText += `${dados[i].cep}`;
-                break;
+    async function buscacep(rua, cidade, uf){
+        try {
+            const request = await fetch(`https://viacep.com.br/ws/${uf}/${cidade}/${rua}/json`);
+            if (!request.ok) {
+                throw new Error('Falha ao buscar dados do endereço');
             }
-            p.innerText += `${dados[i].cep},\u00A0`;
-            body.appendChild(p);
-        }       
+            return await request.json();
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao buscar o endereço. Tente novamente mais tarde.');
+            return null;
+        }
     }
 
-    async function buscacep(rua, cidade, uf){
-       const request = await fetch(`https://viacep.com.br/ws/${uf}/${cidade}/${rua}/json`);
-       return request.json();
-   }
-
-   const retorno = await buscacep(inputrua.value, inputcidade.value, inputuf.value);
-   console.log(retorno);
-   preencher(retorno);
-})
-
+    const retorno = await buscacep(inputrua.value, inputcidade.value, inputuf.value);
+    if (retorno && retorno.length > 0) {
+        preencherForm(retorno[0]);
+    } else {
+        alert('Nenhum endereço encontrado para a pesquisa fornecida.');
+    }
+});
